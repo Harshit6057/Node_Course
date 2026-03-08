@@ -1,4 +1,4 @@
-const http = require("http");
+ const http = require("http");
 const fs = require("fs");
 
 const server = http.createServer((req, res) => {
@@ -25,6 +25,9 @@ const server = http.createServer((req, res) => {
   }
 
   else if (req.url.toLowerCase() === "/submit-details" && req.method === "POST"){
+    req.on('data', (chunk) => {
+      console.log(chunk);
+    });
     fs.writeFileSync("userDetails.txt", 'Harshit');
     res.statusCode = 302;
     res.setHeader('Location', '/');
