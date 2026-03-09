@@ -1,28 +1,31 @@
- exports.getAddHome = (req, res, next) =>{
-  
-  res.render('addHome' , {pageTitle: "Add Home to airbnb",
-    currentPage: "addHome",});
- };
+const Home = require("../models/home");
 
-
- const registeredHomes = [];
-
- exports.postAddHome = (req, res, next) =>{
-  console.log('Home Registration Successful');
-  console.log(req.body);
-  console.log(req.body.houseName);
-  registeredHomes.push({ houseName: req.body.houseName });
-  console.log(registeredHomes);
-  
-  res.render('homeadded', {pageTitle: 'Home Added Successfully',
-    currentPage: "homeAdded",
+exports.getAddHome = (req, res, next) => {
+  res.render("addHome", {
+    pageTitle: "Add Home to Airbnb",
+    currentPage: "addHome"
   });
- }
+};
 
+exports.postAddHome = (req, res, next) => {
+  console.log("Home Registration Successful", req.body);
 
- exports.getHomes = (req, res, next) =>{
-  console.log(registeredHomes);
-  res.render("home", { registeredHomes: registeredHomes, pageTitle: 'airbnb Home' });
-}
+  const { houseName, price, location, rating, photoUrl } = req.body;
 
- exports.registeredHomes = registeredHomes;
+  const home = new Home(houseName, price, location, rating, photoUrl);
+  home.save();
+
+  res.render("homeadded", {
+    pageTitle: "Home Added Successfully",
+    currentPage: "homeAdded"
+  });
+};
+
+exports.getHomes = (req, res, next) => {
+  Home.fetchAll((registeredHomes) => {
+    res.render("home", {
+      registeredHomes: registeredHomes,
+      pageTitle: "Airbnb Home"
+    });
+  });
+};
