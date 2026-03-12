@@ -9,11 +9,12 @@ exports.getAddHome = (req, res, next) => {
   });
 };
 
-exports.getEditHome = (req, res, next) => {
+exports.getEditHome = async (req, res, next) => {
   const homeId = req.params.homeId;
   const editing = req.query.editing === 'true';
 
-  Home.findById(homeId, home => {
+  try {
+    const home = await Home.findById(homeId);
     if (!home) {
       console.log("Home not found for editing.");
       return res.redirect("/host/host-home-list");
@@ -26,51 +27,56 @@ exports.getEditHome = (req, res, next) => {
       currentPage: "host-homes",
       editing: editing,
     });
-  });
+  } catch (error) {
+    next(error);
+  }
 };
 
-exports.getHostHomes = (req, res, next) => {
-  Home.fetchAll((registeredHomes) =>
+exports.getHostHomes = async (req, res, next) => {
+  try {
+    const registeredHomes = await Home.fetchAll();
     res.render("host/host-home-list", {
       registeredHomes: registeredHomes,
       pageTitle: "Host Homes List",
       currentPage: "host-homes",
-    })
-  );
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-exports.postAddHome = (req, res, next) => {
+exports.postAddHome = async (req, res, next) => {
   const { houseName, price, location, rating, photoUrl } = req.body;
   const home = new Home(houseName, price, location, rating, photoUrl);
-  home.save((error) => {
-    if (error) {
-      console.log("Error while adding home", error);
-      return res.redirect("/host/add-home");
-    }
+  try {
+    await home.save();
     res.redirect("/host/host-home-list");
-  });
+  } catch (error) {
+    console.log("Error while adding home", error);
+    res.redirect("/host/add-home");
+  }
 };
 
-exports.postEditHome = (req, res, next) => {
+exports.postEditHome = async (req, res, next) => {
   const { id, houseName, price, location, rating, photoUrl } = req.body;
-  const home = new Home(houseName, price, location, rating, photoUrl);
-  home.id = id;
-  home.save((error) => {
-    if (error) {
-      console.log("Error while editing home", error);
-      return res.redirect(`/host/edit-home/${id}?editing=true`);
-    }
+  const home = new Home(houseName, price, location, rating, photoUrl, undefined, id);
+  try {
+    await home.save();
     res.redirect("/host/host-home-list");
-  });
+  } catch (error) {
+    console.log("Error while editing home", error);
+    res.redirect(`/host/edit-home/${id}?editing=true`);
+  }
 };
 
-exports.postDeleteHome = (req, res, next) => {
+exports.postDeleteHome = async (req, res, next) => {
   const homeId = req.params.homeId;
   console.log('Came to delete ', homeId);
-  Home.deleteById(homeId, error => {
-    if (error) {
-      console.log('Error while deleting ', error);
-    }
+  try {
+    await Home.deleteById(homeId);
     res.redirect("/host/host-home-list");
-  })
+  } catch (error) {
+    console.log('Error while deleting ', error);
+    res.redirect("/host/host-home-list");
+  }
 };

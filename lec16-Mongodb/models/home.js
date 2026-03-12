@@ -1,6 +1,17 @@
 const { ObjectId } = require('mongodb');
 const { getDB } = require('../utils/databaseUtil');
 
+const normalizeHome = (home) => {
+  if (!home) {
+    return null;
+  }
+
+  return {
+    ...home,
+    id: home._id.toString(),
+  };
+};
+
 module.exports = class Home {
   constructor(houseName, price, location, rating, photoUrl, description, _id) {
     this.houseName = houseName;
@@ -34,14 +45,16 @@ module.exports = class Home {
 
   static fetchAll() {
     const db = getDB();
-    return db.collection('homes').find().toArray();
+    return db.collection('homes').find().toArray()
+      .then(homes => homes.map(normalizeHome));
   }
 
   static findById(homeId) {
     const db = getDB();
     return db.collection('homes')
     .find({_id: new ObjectId(String(homeId))})
-    .next();
+    .next()
+    .then(normalizeHome);
   }
 
   static deleteById(homeId) {
